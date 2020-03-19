@@ -2,12 +2,25 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiResource;
+use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\GenreRepository")
+ * @ApiResource(
+ *     attributes={
+ *          "order"={"wording": "ASC"},
+ *          },
+ * )
+ * @UniqueEntity(
+ *     fields={"wording"},
+ *     message="This wording is already in use."
+ * )
  */
 class Genre
 {
@@ -20,11 +33,18 @@ class Genre
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Assert\Length(
+     *      min = 2,
+     *      max = 50,
+     *      minMessage = "Your first name must be at least {{ limit }} characters long",
+     *      maxMessage = "Your first name cannot be longer than {{ limit }} characters"
+     * )
      */
     private $wording;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Book", mappedBy="genre")
+     * @ApiSubresource
      */
     private $books;
 
