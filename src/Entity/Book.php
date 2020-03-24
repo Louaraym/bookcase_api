@@ -20,30 +20,36 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *          },
  *     collectionOperations={
  *     "get"={
- *          "normalization_context"={"groups"={"get_role_adherent"}}
+ *          "normalization_context"={"groups"={"get_role_user"}}
  *               },
  *      "post"={
  *              "access_control"="is_granted('ROLE_MANAGER')",
- *             "access_control_message"="you don't have the right to access this resource"
+ *             "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource"
+ *          },
+ *      "best_books"={
+ *             "method"="GET",
+ *             "route_name"="best_books",
+ *            "controller"=StatsController::class
  *          }
  *      },
  *     itemOperations={
  *     "get"={
- *          "normalization_context"={"groups"={"get_role_adherent"}}
+ *          "normalization_context"={"groups"={"get_role_user"}}
  *               },
  *     "put"={
  *          "access_control"="is_granted('ROLE_MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource",
+ *          "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource",
  *          "denormalization_context"={"groups"={"put_role_manager"}}
  *              },
  *     "delete"={
  *          "access_control"="is_granted('ROLE_ ADMIN')",
- *          "access_control_message"="you don't have the right to access this resource"
+ *          "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource"
  *              }
  *     }
  * )
  * @ApiFilter(
- *     SearchFilter::class, properties={
+ *     SearchFilter::class,
+ *     properties={
  *          "isbn": "exact",
  *          "title": "partial",
  *          "language": "partial",
@@ -52,9 +58,10 @@ use Symfony\Component\Serializer\Annotation\Groups;
  *          }
  * )
  * @ApiFilter(
- *     OrderFilter::class, properties={
- *     "price",
- *     "publicationYear",
+ *     OrderFilter::class,
+ *     properties={
+ *     "price"="asc",
+ *     "publicationYear"="asc"
  *      }
  * )
  * @ApiFilter(
@@ -76,13 +83,13 @@ class Book
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $isbn;
 
     /**
      * @ORM\Column(type="string", length=255)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $title;
 
@@ -94,34 +101,40 @@ class Book
 
     /**
      * @ORM\Column(type="integer", nullable=true)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $publicationYear;
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $language;
 
     /**
+     * @ORM\Column(type="boolean")
+     * @Groups({"get_role_user", "put_role_manager"})
+     */
+    private $available;
+
+    /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Genre", inversedBy="books")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $genre;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Author", inversedBy="books")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $author;
 
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Editor", inversedBy="books")
      * @ORM\JoinColumn(nullable=false)
-     * @Groups({"get_role_adherent", "put_role_manager"})
+     * @Groups({"get_role_user", "put_role_manager"})
      */
     private $editor;
 
@@ -130,6 +143,7 @@ class Book
      * @Groups({"get_role_manager"})
      */
     private $borrows;
+
 
     public function __construct()
     {
@@ -269,6 +283,18 @@ class Book
                 $borrow->setBook(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getAvailable(): ?bool
+    {
+        return $this->available;
+    }
+
+    public function setAvailable(?bool $available): self
+    {
+        $this->available = $available;
 
         return $this;
     }

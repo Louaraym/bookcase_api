@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -10,7 +12,18 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\NationalityRepository")
- * @ApiResource
+ * @ApiResource(
+ *      attributes={
+ *          "order"= {
+ *              "wording":"ASC"
+ *           }
+ * })
+ * @ApiFilter(
+ *      SearchFilter::class,
+ *      properties={
+ *          "wording": "ipartial"
+ *      }
+ * )
  */
 class Nationality
 {
@@ -18,11 +31,13 @@ class Nationality
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"get_author_role_user"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"get_author_role_user"})
      */
     private $wording;
 

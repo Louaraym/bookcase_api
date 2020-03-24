@@ -2,6 +2,10 @@
 
 namespace App\Entity;
 
+use ApiPlatform\Core\Annotation\ApiFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\SearchFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\OrderFilter;
+use ApiPlatform\Core\Bridge\Doctrine\Orm\Filter\DateFilter;
 use ApiPlatform\Core\Annotation\ApiResource;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Annotation\Groups;
@@ -9,33 +13,65 @@ use Symfony\Component\Serializer\Annotation\Groups;
 /**
  * @ORM\Entity(repositoryClass="App\Repository\BorrowRepository")
  * @ApiResource(
+ *      attributes={
+ *          "order"= {
+ *              "borrowDate":"ASC"
+ *           }
+ *      },
  *     itemOperations={
  *        "get"={
- *          "access_control"="(is_granted('ROLE_ADHERENT') && object.getAdherent() == user) || is_granted('ROLE_MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource",
+ *          "access_control"="(is_granted('ROLE_USER') && object.getUser() == user) || is_granted('ROLE_MANAGER')",
+ *          "access_control_message" = "Vous ne pouvez avoir accès qu'à vos propres prêts."
  *          },
  *        "put"={
  *          "access_control"="is_granted('ROLE_MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource",
+ *           "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource",
  *          "denormalization_context"={"groups"={"put_role_manager"}}
  *           },
  *        "delete"={
- *          "access_control"="is_granted('ROLE_ MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource"
+ *          "access_control"="is_granted('ROLE_MANAGER')",
+ *          "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource"
  *            }
  *     },
  *     collectionOperations={
  *        "get"={
  *          "path"="/borrows",
- *          "access_control"="(is_granted('ROLE_ADHERENT') && object.getAdherent() == user) || is_granted('ROLE_MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource",
+ *          "access_control"="is_granted('ROLE_MANAGER')",
+ *           "access_control_message"="Vous n'avez pas les droits d'accéder à cette ressource"
  *          },
  *        "post"={
- *          "access_control"="(is_granted('ROLE_ADHERENT') && object.getAdherent() == user) || is_granted('ROLE_MANAGER')",
- *          "access_control_message"="you don't have the right to access this resource",
+ *             "denormalization_context"= {
+ *                  "groups"={"borrow_post_role_user"}
+ *              }
  *          }
  *     }
  * )
+ * @ApiFilter(
+ *      OrderFilter::class,
+ *      properties={
+ *          "borrowDate",
+ *          "borrowExpectedReturnDate",
+ *          "borrowRealReturnDate"
+ *      }
+ * )
+ *
+ * @ApiFilter(
+ *      SearchFilter::class,
+ *      properties={
+ *          "book.title": "impartial",
+ *          "user.id": "exact"
+ *      }
+ * )
+ *
+ * @ApiFilter(
+ *      DateFilter::class,
+ *      properties={
+ *          "borrowDate",
+ *          "borrowExpectedReturnDate",
+ *          "borrowRealReturnDate"
+ *      }
+ * )
+ * @ORM\HasLifecycleCallbacks()
  */
 class Borrow
 {
@@ -48,13 +84,11 @@ class Borrow
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"put_role_admin"})
      */
     private $borrowDate;
 
     /**
      * @ORM\Column(type="datetime")
-     * @Groups({"put_role_admin"})
      */
     private $borrowExpectedReturnDate;
 
@@ -67,14 +101,15 @@ class Borrow
     /**
      * @ORM\ManyToOne(targetEntity="App\Entity\Book", inversedBy="borrows")
      * @ORM\JoinColumn(nullable=false)
+     @Groups({"borrow_post_role_user"})
      */
     private $book;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\Adherent", inversedBy="borrows")
+     * @ORM\ManyToOne(targetEntity="App\Entity\User", inversedBy="borrows")
      * @ORM\JoinColumn(nullable=false)
      */
-    private $adherent;
+    private $user;
 
     public function __construct()
     {
@@ -139,15 +174,16 @@ class Borrow
         return $this;
     }
 
-    public function getAdherent(): ?Adherent
+    public function getUser(): ?User
     {
-        return $this->adherent;
+        return $this->user;
     }
 
-    public function setAdherent(?Adherent $adherent): self
+    public function setUser(?User $user): self
     {
-        $this->adherent = $adherent;
+        $this->user = $user;
 
         return $this;
     }
+
 }

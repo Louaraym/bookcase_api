@@ -7,6 +7,7 @@ use ApiPlatform\Core\Annotation\ApiSubresource;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
@@ -15,11 +16,11 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ApiResource(
  *     attributes={
  *          "order"={"wording": "ASC"},
- *          },
+ *          }
  * )
  * @UniqueEntity(
  *     fields={"wording"},
- *     message="This wording is already in use."
+ *     message="il existe déja un genre avec le libellé {‌{ value }}, veuillez saisir un autre libellé "
  * )
  */
 class Genre
@@ -28,6 +29,7 @@ class Genre
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"get_role_user"})
      */
     private $id;
 
@@ -39,6 +41,7 @@ class Genre
      *      minMessage = "Your first name must be at least {{ limit }} characters long",
      *      maxMessage = "Your first name cannot be longer than {{ limit }} characters"
      * )
+     * @Groups({"get_role_user"})
      */
     private $wording;
 

@@ -1,13 +1,12 @@
 <?php
-
 namespace App\Serializer;
 
 use ApiPlatform\Core\Serializer\SerializerContextBuilderInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
-use App\Entity\Borrow;
+use App\Entity\User;
 
-final class BorrowContextBuilder implements SerializerContextBuilderInterface
+final class UserContextBuilder implements SerializerContextBuilderInterface
 {
     private $decorated;
     private $authorizationChecker;
@@ -23,8 +22,12 @@ final class BorrowContextBuilder implements SerializerContextBuilderInterface
         $context = $this->decorated->createFromRequest($request, $normalization, $extractedAttributes);
         $resourceClass = $context['resource_class'] ?? null;
 
-        if ($resourceClass === Borrow::class && isset($context['groups']) && $this->authorizationChecker->isGranted('ROLE_ADMIN') && false === $normalization && $request->getMethod() === 'PUT') {
-            $context['groups'][] = 'put_role_admin';
+        if ($resourceClass === User::class && isset($context['groups']) && $this->authorizationChecker->isGranted('ROLE_ADMIN') && $normalization === false) {
+            if ($request->getMethod() === 'POST'){
+                $context['groups'][] = 'post_role_admin';
+            } elseif($request->getMethod() === 'PUT'){
+                $context['groups'][] = 'put_role_admin';
+            }
         }
 
         return $context;

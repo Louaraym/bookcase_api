@@ -47,4 +47,21 @@ class BookRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    /**
+     * @return mixed
+     */
+    public function findBestBooks()
+    {
+        $query = $this->createQueryBuilder('b')
+            ->select('b as book, count(bo.id) as borrowsNumber')
+            ->join('b.borrows', 'bo')
+            ->groupBy('b')
+            ->orderBy('borrowsNumber', 'DESC')
+            ->setMaxResults(5);
+        return $query
+            ->getQuery()
+            ->getResult()
+            ;
+    }
 }

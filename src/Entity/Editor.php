@@ -10,7 +10,7 @@ use Symfony\Component\Serializer\Annotation\Groups;
 
 /**
  * @ORM\Entity(repositoryClass="App\Repository\EditorRepository")
- * @ApiResource
+ * @ApiResource()
  */
 class Editor
 {
@@ -18,11 +18,13 @@ class Editor
      * @ORM\Id()
      * @ORM\GeneratedValue()
      * @ORM\Column(type="integer")
+     * @Groups({"get_role_user"})
      */
     private $id;
 
     /**
      * @ORM\Column(type="string", length=255)
+     * @Groups({"get_role_user"})
      */
     private $name;
 

@@ -2,7 +2,7 @@
 
 namespace App\DataFixtures;
 
-use App\Entity\Adherent;
+use App\Entity\User;
 use App\Entity\Borrow;
 use App\Repository\BookRepository;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -28,13 +28,13 @@ class AppFixtures extends Fixture
 
     public function load(ObjectManager $manager)
     {
-        $this->loadAdherent();
+        $this->loadUser();
         $this->loadBorrow();
 
         $manager->flush();
     }
 
-    public function loadAdherent(): void
+    public function loadUser(): void
     {
         $commune = [
             "78003", "78005", "78006", "78007", "78009", "78010", "78013", "78015", "78020", "78029",
@@ -45,46 +45,47 @@ class AppFixtures extends Fixture
         $genre = ['male', 'female'];
 
         for ($i=0; $i<30; $i++){
-            $adherent = new Adherent();
+            $user = new User();
 
-            $adherent->setFirstName($this->faker->firstName($genre[random_int(0,1)]))
+            $user->setFirstName($this->faker->firstName($genre[random_int(0,1)]))
                      ->setLastName($this->faker->lastName)
                       ->setAddress($this->faker->streetAddress)
                       ->setTelephone($this->faker->phoneNumber)
-                      ->setEmail(strtolower($adherent->getLastName().'@gmail.com'))
-                      ->setPassword($this->encoder->encodePassword($adherent, $adherent->getLastName()))
+                      ->setEmail(strtolower($user->getLastName().'@gmail.com'))
+                      ->setPassword($this->encoder->encodePassword($user, $user->getLastName()))
                        ->setCityCode($commune[random_int(0, sizeof($commune)-1)])
                     ;
-            $this->addReference('adherent'.$i, $adherent);
-            $this->entityManager->persist($adherent);
+            $this->addReference('user'.$i, $user);
+            $this->entityManager->persist($user);
         }
 
-        $adherent = new Adherent();
-        $adherent->setFirstName('Raymond')
+        $admin = new User();
+        $admin->setFirstName('Raymond')
             ->setLastName('LOUA')
             ->setEmail('admin@gmail.com')
-            ->setPassword($this->encoder->encodePassword($adherent, $adherent->getLastName()))
-            ->setRoles([Adherent::ROLE_ADMIN]);
-        $this->entityManager->persist($adherent);
+            ->setPassword($this->encoder->encodePassword($admin, $admin->getLastName()))
+            ->setRoles([User::ROLE_ADMIN]);
+        $this->entityManager->persist($admin);
 
-        $adherent = new Adherent();
-        $adherent->setFirstName('Agathe')
+        $manager = new User();
+        $manager->setFirstName('Agathe')
             ->setLastName('GUEMOU')
             ->setEmail('manager@gmail.com')
-            ->setPassword($this->encoder->encodePassword($adherent, $adherent->getLastName()))
-            ->setRoles([Adherent::ROLE_MANAGER]);
-        $this->entityManager->persist($adherent);
+            ->setPassword($this->encoder->encodePassword($manager, $manager->getLastName()))
+            ->setRoles([User::ROLE_MANAGER]);
+        $this->entityManager->persist($manager);
 
         $this->entityManager->flush();
     }
 
-    public function loadBorrow(){
+    public function loadBorrow(): void
+    {
         for ($i=0; $i<30; $i++){
             for ($j=0, $jMax = random_int(1, 5); $j< $jMax; $j++){
                 $borrow = new Borrow();
                 $book = $this->bookRepository->find(random_int(1,49));
                 $borrow->setBook($book)
-                        ->setAdherent($this->getReference('adherent'.$i))
+                        ->setUser($this->getReference('user'.$i))
                         ->setBorrowDate($this->faker->dateTimeBetween('-6 months'))
                 ;
 
