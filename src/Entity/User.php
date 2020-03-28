@@ -312,4 +312,9 @@ class User implements UserInterface
     {
         // TODO: Implement eraseCredentials() method.
     }
+
+    public function __toString()
+    {
+        return (string) $this->firstName.' '.$this->lastName.' '.$this->address.' '.$this->cityCode.' '.$this->email.' '.$this->telephone;
+    }
 }
